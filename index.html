@@ -41,6 +41,8 @@
   }
   .btn-export svg{width:17px;height:17px;stroke:var(--accent)}
   .btn-export:active{background:var(--line)} .btn-export:disabled{opacity:.4}
+  .export-group{display:flex;gap:8px}
+  .btn-export.pdf svg{stroke:#fb7185}
 
   /* stats strip */
   .stats{display:flex;gap:8px;padding:12px 16px 0}
@@ -170,7 +172,10 @@
   <svg class="mark" viewBox="0 0 180 180" fill="none"><rect width="180" height="180" rx="40" fill="#161b23"/><g stroke="#f0b429" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M52 62l38-20 38 20v56l-38 20-38-20z"/><path d="M52 62l38 20 38-20M90 82v56"/></g></svg>
   <div><div class="sub">Depo</div><h1>Stok Sayım</h1></div>
   <div class="spacer"></div>
-  <button class="btn-export" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Excel</button>
+  <div class="export-group">
+    <button class="btn-export pdf" id="pdfBtn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6M9 18h6M9 12h2"/></svg>PDF</button>
+    <button class="btn-export" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Excel</button>
+  </div>
 </header>
 
 <div class="stats">
@@ -246,6 +251,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 /* ===== XLSX BUILDER (tested) ===== */
 (function (root) {
@@ -293,9 +300,9 @@
     // Media + drawing (twoCellAnchor, image pinned inside the Fotoğraf cell of its row)
     if(hasImg){
       media.forEach(m=>zip.file('xl/media/'+m.name,m.b64,{base64:true}));
-      const fromColOff=Math.round(marg), fromRowOff=Math.round(marg);
-      const toColOff=Math.round(cellW_EMU-marg), toRowOff=Math.round(cellH_EMU-marg);
-      const anchors=media.map(m=>`<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>1</xdr:col><xdr:colOff>${fromColOff}</xdr:colOff><xdr:row>${m.row}</xdr:row><xdr:rowOff>${fromRowOff}</xdr:rowOff></xdr:from><xdr:to><xdr:col>2</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${m.row+1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${m.picId}" name="${m.name}"/><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="${m.relId}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor>`).join('');
+      const imgSize=Math.round(Math.min(cellW_EMU,cellH_EMU)-2*marg); // square, fits inside cell
+      const off=Math.round(marg);
+      const anchors=media.map(m=>`<xdr:oneCellAnchor><xdr:from><xdr:col>1</xdr:col><xdr:colOff>${off}</xdr:colOff><xdr:row>${m.row}</xdr:row><xdr:rowOff>${off}</xdr:rowOff></xdr:from><xdr:ext cx="${imgSize}" cy="${imgSize}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${m.picId}" name="Foto ${m.picId}" descr=""/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="${m.relId}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${imgSize}" cy="${imgSize}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>`).join('');
       zip.file('xl/drawings/drawing1.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">${anchors}</xdr:wsDr>`);
       zip.file('xl/drawings/_rels/drawing1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -360,7 +367,7 @@ function render(){
   let gStock=0,gIn=0,gOut=0;
   items.forEach(it=>{const c=computed(it);gStock+=c.current;gIn+=c.totalIn;gOut+=c.totalOut;});
   $('stTotal').textContent=gStock;$('stIn').textContent=gIn;$('stOut').textContent=gOut;$('stCount').textContent=items.length;
-  $('exportBtn').disabled=items.length===0;
+  $('exportBtn').disabled=items.length===0;$('pdfBtn').disabled=items.length===0;
 
   const filtered=items.filter(it=>!q||(it.name+' '+it.code+' '+it.loc+' '+it.note).toLowerCase().includes(q)).sort((a,b)=>b.date-a.date);
   if(filtered.length===0){
@@ -485,6 +492,81 @@ $('exportBtn').onclick=async()=>{
   }catch(e){console.error(e);toast('Dışa aktarma hatası','err');}
   finally{btn.disabled=false;btn.innerHTML=orig;}
 };
+
+/* ---- PDF report (renders reliably on iPhone) ---- */
+function pdfProductRow(it){
+  const c=computed(it); const low=c.current<2;
+  const photo=it.photo
+    ? `<img src="${it.photo}" style="width:78px;height:78px;object-fit:cover;border-radius:8px;border:1px solid #d8dee9;flex:0 0 auto">`
+    : `<div style="width:78px;height:78px;border-radius:8px;border:1px solid #d8dee9;background:#eef1f5;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#9aa4b2;font-size:11px">foto yok</div>`;
+  return `<div style="display:flex;gap:14px;align-items:center;padding:12px 14px;border-bottom:1px solid #e6e9ee;${low?'background:#ffe0e0;':''}">
+    ${photo}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:16px;font-weight:700;color:#111">${esc(it.name)||'(isimsiz)'}${low?' <span style="font-size:11px;font-weight:800;color:#fff;background:#e23b3b;border-radius:5px;padding:2px 7px;vertical-align:middle">STOK AZALDI</span>':''}</div>
+      <div style="font-size:12px;color:#667085;margin-top:2px">${esc(it.code)||'kodsuz'}${it.loc?' &nbsp;·&nbsp; 📍 '+esc(it.loc):''}</div>
+      ${it.note?`<div style="font-size:12px;color:#667085;margin-top:2px">${esc(it.note)}</div>`:''}
+      <div style="font-size:12px;font-weight:600;margin-top:5px;color:#475467">Açılış ${it.opening||0} &nbsp;·&nbsp; <span style="color:#129a6b">↑ Giriş ${c.totalIn}</span> &nbsp;·&nbsp; <span style="color:#e07a1c">↓ Çıkış ${c.totalOut}</span></div>
+    </div>
+    <div style="text-align:center;flex:0 0 auto;min-width:64px">
+      <div style="font-size:26px;font-weight:800;color:${low?'#e23b3b':'#b7860b'};line-height:1">${c.current}</div>
+      <div style="font-size:10px;color:#98a2b3;text-transform:uppercase;letter-spacing:.4px">mevcut</div>
+    </div>
+  </div>`;
+}
+function pdfPageDiv(chunk, withHeader){
+  const div=document.createElement('div');
+  div.style.cssText='position:absolute;left:-10000px;top:0;width:760px;background:#fff;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#111;padding:24px;box-sizing:border-box';
+  let head='';
+  if(withHeader){
+    let gS=0,gI=0,gO=0;items.filter(x=>!x.deleted).forEach(x=>{const c=computed(x);gS+=c.current;gI+=c.totalIn;gO+=c.totalOut;});
+    const nlow=items.filter(x=>!x.deleted&&computed(x).current<2).length;
+    head=`<div style="border-bottom:3px solid #f0b429;padding-bottom:14px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div><div style="font-size:12px;color:#98a2b3;text-transform:uppercase;letter-spacing:1px;font-weight:700">Depo</div>
+        <div style="font-size:24px;font-weight:800">Stok Raporu</div></div>
+        <div style="font-size:13px;color:#667085">${fmtDate(Date.now())}</div>
+      </div>
+      <div style="display:flex;gap:20px;margin-top:12px;font-size:13px;font-weight:600">
+        <span>Ürün: <b>${items.filter(x=>!x.deleted).length}</b></span>
+        <span>Toplam stok: <b style="color:#b7860b">${gS}</b></span>
+        <span style="color:#129a6b">Giriş: <b>${gI}</b></span>
+        <span style="color:#e07a1c">Çıkış: <b>${gO}</b></span>
+        ${nlow?`<span style="color:#e23b3b">Azalan: <b>${nlow}</b></span>`:''}
+      </div></div>`;
+  }
+  div.innerHTML=head+chunk.map(pdfProductRow).join('');
+  return div;
+}
+async function exportPDF(){
+  const list=items.filter(x=>!x.deleted).sort((a,b)=>b.date-a.date);
+  if(list.length===0)return;
+  if(typeof window.jspdf==='undefined'||typeof window.html2canvas==='undefined'){toast('PDF motoru yüklenemedi.<br>İnternete bağlanıp tekrar dene.','err');return;}
+  const btn=$('pdfBtn');const orig=btn.innerHTML;btn.disabled=true;btn.innerHTML='<span class="spin">⏳</span>';
+  try{
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF('p','pt','a4');
+    const pageW=595.28,pageH=841.89,margin=22;
+    const pages=[]; const perFirst=5,perRest=7;
+    pages.push(list.slice(0,perFirst));
+    for(let i=perFirst;i<list.length;i+=perRest)pages.push(list.slice(i,i+perRest));
+    for(let p=0;p<pages.length;p++){
+      const div=pdfPageDiv(pages[p],p===0);
+      document.body.appendChild(div);
+      const canvas=await html2canvas(div,{scale:1.6,backgroundColor:'#ffffff',logging:false});
+      document.body.removeChild(div);
+      const img=canvas.toDataURL('image/jpeg',0.78);
+      let iw=pageW-margin*2, ih=canvas.height*iw/canvas.width;
+      const maxH=pageH-margin*2;
+      if(ih>maxH){ih=maxH;iw=canvas.width*ih/canvas.height;}
+      if(p>0)pdf.addPage();
+      pdf.addImage(img,'JPEG',margin,margin,iw,ih);
+    }
+    pdf.save('stok_rapor_'+todayISO()+'.pdf');
+    toast('PDF hazır ✓<br>Paylaş menüsünden gönderebilirsin','ok');
+  }catch(e){console.error(e);toast('PDF oluşturma hatası','err');}
+  finally{btn.disabled=false;btn.innerHTML=orig;}
+}
+$('pdfBtn').onclick=exportPDF;
 
 searchEl.oninput=render;
 
