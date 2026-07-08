@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stok Sayım">
+<meta name="theme-color" content="#12161c">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2312161c'/%3E%3Cg fill='none' stroke='%23f0b429' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M52 62l38-20 38 20v56l-38 20-38-20z'/%3E%3Cpath d='M52 62l38 20 38-20M90 82v56'/%3E%3C/g%3E%3C/svg%3E">
+<title>Stok Sayım</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b23; --panel2:#1d2531; --line:#2a3341;
+    --ink:#eef2f7; --muted:#94a3b8; --dim:#64748b;
+    --accent:#f0b429; --accent-ink:#1a1204;
+    --ok:#34d399; --danger:#f87171; --danger-bg:#2a1616;
+    --r:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    font-size:16px; line-height:1.4;
+    padding-bottom:env(safe-area-inset-bottom);
+    -webkit-font-smoothing:antialiased;
+  }
+  /* HEADER */
+  header{
+    position:sticky; top:0; z-index:20;
+    background:var(--panel);
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:12px;
+  }
+  header .mark{width:34px;height:34px;flex:0 0 auto}
+  header h1{font-size:18px;font-weight:700;margin:0;letter-spacing:.2px}
+  header .sub{font-size:12px;color:var(--dim);font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+  header .spacer{flex:1}
+  .count-badge{
+    background:var(--panel2); border:1px solid var(--line);
+    border-radius:999px; padding:6px 12px; text-align:right; line-height:1.1;
+  }
+  .count-badge b{font-size:16px;color:var(--accent);font-variant-numeric:tabular-nums}
+  .count-badge span{display:block;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+
+  /* TOOLBAR */
+  .toolbar{padding:12px 16px 0;display:flex;gap:10px}
+  .search{
+    flex:1;position:relative
+  }
+  .search input{
+    width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    border-radius:12px;padding:12px 14px 12px 40px;font-size:16px;outline:none;
+  }
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--dim)}
+  .btn-export{
+    background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    border-radius:12px;padding:0 16px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:7px;
+  }
+  .btn-export svg{width:17px;height:17px;stroke:var(--accent)}
+  .btn-export:active{background:var(--panel2)}
+  .btn-export:disabled{opacity:.4}
+
+  /* LIST */
+  main{padding:12px 16px 120px}
+  .empty{
+    text-align:center;padding:64px 24px;color:var(--muted)
+  }
+  .empty svg{width:56px;height:56px;stroke:var(--line);margin-bottom:16px}
+  .empty h2{color:var(--ink);font-size:17px;margin:0 0 6px}
+  .empty p{margin:0;font-size:14px;color:var(--dim)}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;
+  }
+  .thumb{
+    width:64px;height:64px;border-radius:10px;flex:0 0 auto;object-fit:cover;
+    background:var(--panel2);border:1px solid var(--line);
+  }
+  .thumb.ph{display:flex;align-items:center;justify-content:center}
+  .thumb.ph svg{width:24px;height:24px;stroke:var(--dim)}
+  .card-body{flex:1;min-width:0}
+  .card-title{font-weight:700;font-size:16px;margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card-code{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;margin-bottom:6px}
+  .card-meta{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{
+    font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--muted)
+  }
+  .chip.qty{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+  .card-note{font-size:13px;color:var(--muted);margin-top:7px;overflow-wrap:anywhere}
+  .card-actions{display:flex;flex-direction:column;gap:8px;flex:0 0 auto}
+  .icon-btn{
+    width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);
+    display:flex;align-items:center;justify-content:center
+  }
+  .icon-btn svg{width:16px;height:16px;stroke:var(--muted)}
+  .icon-btn.del svg{stroke:var(--danger)}
+  .icon-btn:active{background:var(--line)}
+
+  /* FAB */
+  .fab{
+    position:fixed;right:20px;bottom:calc(env(safe-area-inset-bottom) + 20px);z-index:25;
+    width:60px;height:60px;border-radius:50%;border:none;
+    background:var(--accent);color:var(--accent-ink);
+    box-shadow:0 8px 24px rgba(240,180,41,.35);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .fab svg{width:28px;height:28px;stroke:var(--accent-ink);stroke-width:2.5}
+  .fab:active{transform:scale(.94)}
+
+  /* MODAL */
+  .sheet-wrap{
+    position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);
+    display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s
+  }
+  .sheet-wrap.open{opacity:1;pointer-events:auto}
+  .sheet{
+    background:var(--bg);width:100%;max-height:92vh;overflow-y:auto;
+    border-radius:20px 20px 0 0;border-top:1px solid var(--line);
+    transform:translateY(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);
+    padding-bottom:calc(env(safe-area-inset-bottom) + 16px);
+    -webkit-overflow-scrolling:touch;
+  }
+  .sheet-wrap.open .sheet{transform:translateY(0)}
+  .sheet-head{
+    position:sticky;top:0;background:var(--bg);padding:16px;display:flex;align-items:center;
+    border-bottom:1px solid var(--line);z-index:2
+  }
+  .sheet-head h3{margin:0;font-size:17px;flex:1}
+  .sheet-head .cancel{background:none;border:none;color:var(--muted);font-size:16px;padding:6px}
+  .sheet-body{padding:16px}
+
+  .photo-zone{
+    border:2px dashed var(--line);border-radius:var(--r);aspect-ratio:16/10;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    color:var(--muted);position:relative;overflow:hidden;background:var(--panel);margin-bottom:18px;
+  }
+  .photo-zone svg{width:34px;height:34px;stroke:var(--accent)}
+  .photo-zone span{font-size:14px;font-weight:600}
+  .photo-zone img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .photo-clear{
+    position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;
+    background:rgba(0,0,0,.6);border:none;display:flex;align-items:center;justify-content:center;z-index:2
+  }
+  .photo-clear svg{width:16px;height:16px;stroke:#fff}
+  input[type=file]{display:none}
+
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+  .field input,.field textarea{
+    width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    border-radius:12px;padding:13px 14px;font-size:16px;outline:none;font-family:inherit
+  }
+  .field input:focus,.field textarea:focus{border-color:var(--accent)}
+  .field textarea{resize:none;min-height:74px}
+  .row2{display:flex;gap:12px}
+  .row2 .field{flex:1}
+  .qty-wrap{display:flex;align-items:stretch;gap:10px}
+  .qty-wrap input{text-align:center;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+  .qty-btn{
+    width:52px;flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    border-radius:12px;font-size:26px;font-weight:400;line-height:1
+  }
+  .qty-btn:active{background:var(--panel2)}
+  .save{
+    width:100%;background:var(--accent);color:var(--accent-ink);border:none;border-radius:14px;
+    padding:16px;font-size:17px;font-weight:700;margin-top:6px
+  }
+  .save:active{filter:brightness(.94)}
+  .save:disabled{opacity:.4}
+
+  /* TOAST */
+  .toast{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);transform:translate(-50%,20px);
+    background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;z-index:60;
+    opacity:0;pointer-events:none;transition:all .25s;max-width:88%;text-align:center
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.ok{border-color:var(--ok)}
+  .toast.err{border-color:var(--danger)}
+  .spin{animation:sp 1s linear infinite;display:inline-block}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="mark" viewBox="0 0 180 180" fill="none">
+    <rect width="180" height="180" rx="40" fill="#161b23"/>
+    <g stroke="#f0b429" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M52 62l38-20 38 20v56l-38 20-38-20z"/><path d="M52 62l38 20 38-20M90 82v56"/>
+    </g>
+  </svg>
+  <div>
+    <div class="sub">Depo</div>
+    <h1>Stok Sayım</h1>
+  </div>
+  <div class="spacer"></div>
+  <div class="count-badge"><b id="countNum">0</b><span>kayıt</span></div>
+</header>
+
+<div class="toolbar">
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+    <input id="search" type="search" placeholder="Ara: ürün, kod, konum…" autocomplete="off">
+  </div>
+  <button class="btn-export" id="exportBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+    Excel
+  </button>
+</div>
+
+<main id="list"></main>
+
+<button class="fab" id="addBtn" aria-label="Yeni kayıt">
+  <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<!-- ENTRY SHEET -->
+<div class="sheet-wrap" id="sheetWrap">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3 id="sheetTitle">Yeni Kayıt</h3>
+      <button class="cancel" id="cancelBtn">İptal</button>
+    </div>
+    <div class="sheet-body">
+      <div class="photo-zone" id="photoZone">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>Fotoğraf çek / seç</span>
+        <img id="photoPreview" hidden>
+        <button class="photo-clear" id="photoClear" hidden><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <input type="file" id="photoInput" accept="image/*">
+
+      <div class="field">
+        <label>Ürün adı</label>
+        <input id="fName" type="text" placeholder="Ürün adı" autocomplete="off">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Ürün / barkod kodu</label>
+          <input id="fCode" type="text" placeholder="Kod" autocomplete="off" inputmode="text">
+        </div>
+        <div class="field">
+          <label>Konum / raf</label>
+          <input id="fLoc" type="text" placeholder="Raf" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label>Adet</label>
+        <div class="qty-wrap">
+          <button class="qty-btn" id="qtyMinus" type="button">−</button>
+          <input id="fQty" type="number" inputmode="numeric" value="1" min="0">
+          <button class="qty-btn" id="qtyPlus" type="button">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Not</label>
+        <textarea id="fNote" placeholder="Durum, hasar, açıklama…"></textarea>
+      </div>
+      <button class="save" id="saveBtn">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+"use strict";
+/* ---------- IndexedDB ---------- */
+const DB_NAME='stok_sayim', STORE='items';
+let db;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains(STORE)){
+        d.createObjectStore(STORE,{keyPath:'id'});
+      }
+    };
+    r.onsuccess=e=>{db=e.target.result;res()};
+    r.onerror=e=>rej(e.target.error);
+  });
+}
+function tx(mode){return db.transaction(STORE,mode).objectStore(STORE);}
+function dbGetAll(){return new Promise((res,rej)=>{const r=tx('readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});}
+function dbPut(item){return new Promise((res,rej)=>{const r=tx('readwrite').put(item);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+function dbDelete(id){return new Promise((res,rej)=>{const r=tx('readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+
+/* ---------- State ---------- */
+let items=[];      // {id,name,code,loc,qty,note,photo(dataURL|null),date}
+let editingId=null;
+let pendingPhoto=null;
+
+/* ---------- Elements ---------- */
+const $=id=>document.getElementById(id);
+const listEl=$('list'), searchEl=$('search'), toastEl=$('toast');
+const sheetWrap=$('sheetWrap');
+
+/* ---------- Helpers ---------- */
+function toast(msg,type){
+  toastEl.className='toast show'+(type?' '+type:'');
+  toastEl.innerHTML=msg;
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>toastEl.className='toast',2200);
+}
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtDate(ts){const d=new Date(ts);const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;}
+
+/* Resize + compress photo to keep storage & Excel small */
+function processImage(file){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const max=1100;
+      let {width:w,height:h}=img;
+      if(w>h && w>max){h=Math.round(h*max/w);w=max;}
+      else if(h>=w && h>max){w=Math.round(w*max/h);h=max;}
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg',0.72));
+    };
+    img.onerror=e=>{URL.revokeObjectURL(url);rej(e);};
+    img.src=url;
+  });
+}
+
+/* ---------- Render ---------- */
+function render(){
+  const q=searchEl.value.trim().toLowerCase();
+  const filtered=items
+    .filter(it=>!q || (it.name+' '+it.code+' '+it.loc+' '+it.note).toLowerCase().includes(q))
+    .sort((a,b)=>b.date-a.date);
+  $('countNum').textContent=items.length;
+  $('exportBtn').disabled=items.length===0;
+
+  if(filtered.length===0){
+    listEl.innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12l8.73-5.04M12 22V12"/></svg>
+      <h2>${items.length?'Sonuç yok':'Henüz kayıt yok'}</h2>
+      <p>${items.length?'Aramayı değiştir':'Sağ alttaki + ile ilk ürünü ekle'}</p>
+    </div>`;
+    return;
+  }
+  listEl.innerHTML=filtered.map(it=>`
+    <div class="card">
+      ${it.photo
+        ? `<img class="thumb" src="${it.photo}" alt="">`
+        : `<div class="thumb ph"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`}
+      <div class="card-body">
+        <p class="card-title">${esc(it.name)||'(isimsiz)'}</p>
+        ${it.code?`<div class="card-code">${esc(it.code)}</div>`:''}
+        <div class="card-meta">
+          <span class="chip qty">${it.qty} adet</span>
+          ${it.loc?`<span class="chip">📍 ${esc(it.loc)}</span>`:''}
+          <span class="chip">${fmtDate(it.date)}</span>
+        </div>
+        ${it.note?`<div class="card-note">${esc(it.note)}</div>`:''}
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn" onclick="openEdit('${it.id}')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
+        <button class="icon-btn del" onclick="removeItem('${it.id}')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+    </div>`).join('');
+}
+
+/* ---------- Sheet ---------- */
+function openSheet(){sheetWrap.classList.add('open');}
+function closeSheet(){sheetWrap.classList.remove('open');}
+function resetForm(){
+  editingId=null;pendingPhoto=null;
+  $('sheetTitle').textContent='Yeni Kayıt';
+  $('fName').value='';$('fCode').value='';$('fLoc').value='';$('fQty').value='1';$('fNote').value='';
+  setPhotoPreview(null);
+}
+function setPhotoPreview(dataURL){
+  const img=$('photoPreview'),clr=$('photoClear');
+  if(dataURL){img.src=dataURL;img.hidden=false;clr.hidden=false;}
+  else{img.src='';img.hidden=true;clr.hidden=true;}
+}
+window.openEdit=function(id){
+  const it=items.find(x=>x.id===id);if(!it)return;
+  editingId=id;pendingPhoto=it.photo||null;
+  $('sheetTitle').textContent='Düzenle';
+  $('fName').value=it.name;$('fCode').value=it.code;$('fLoc').value=it.loc;
+  $('fQty').value=it.qty;$('fNote').value=it.note;
+  setPhotoPreview(it.photo||null);
+  openSheet();
+};
+window.removeItem=async function(id){
+  const it=items.find(x=>x.id===id);
+  if(!confirm(`"${it?it.name||'kayıt':'kayıt'}" silinsin mi?`))return;
+  await dbDelete(id);
+  items=items.filter(x=>x.id!==id);
+  render();toast('Silindi');
+};
+
+/* ---------- Save ---------- */
+async function save(){
+  const name=$('fName').value.trim();
+  const code=$('fCode').value.trim();
+  if(!name && !code){toast('Ürün adı veya kod gerekli','err');return;}
+  const item={
+    id: editingId || (Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
+    name, code,
+    loc: $('fLoc').value.trim(),
+    qty: parseInt($('fQty').value,10)||0,
+    note: $('fNote').value.trim(),
+    photo: pendingPhoto,
+    date: editingId ? (items.find(x=>x.id===editingId).date) : Date.now()
+  };
+  await dbPut(item);
+  if(editingId){items=items.map(x=>x.id===editingId?item:x);}
+  else{items.push(item);}
+  closeSheet();render();
+  toast(editingId?'Güncellendi':'Kaydedildi','ok');
+}
+
+/* ---------- Excel export ---------- */
+async function exportExcel(){
+  if(items.length===0)return;
+  const btn=$('exportBtn');
+  const orig=btn.innerHTML;
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin">⏳</span>';
+  try{
+    if(typeof ExcelJS==='undefined'){toast('Excel motoru yüklenemedi.<br>İnternete bağlanıp tekrar dene.','err');return;}
+    const wb=new ExcelJS.Workbook();
+    const ws=wb.addWorksheet('Stok Sayım');
+    ws.columns=[
+      {header:'Sıra',key:'no',width:6},
+      {header:'Fotoğraf',key:'img',width:14},
+      {header:'Ürün Adı',key:'name',width:28},
+      {header:'Kod',key:'code',width:18},
+      {header:'Adet',key:'qty',width:8},
+      {header:'Konum',key:'loc',width:14},
+      {header:'Not',key:'note',width:30},
+      {header:'Tarih',key:'date',width:18},
+    ];
+    ws.getRow(1).font={bold:true,color:{argb:'FF1A1204'}};
+    ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0B429'}};
+    ws.getRow(1).height=22;
+    const sorted=[...items].sort((a,b)=>a.date-b.date);
+    sorted.forEach((it,i)=>{
+      const r=ws.addRow({
+        no:i+1,name:it.name,code:it.code,qty:it.qty,
+        loc:it.loc,note:it.note,date:fmtDate(it.date)
+      });
+      r.alignment={vertical:'middle',wrapText:true};
+      if(it.photo){
+        r.height=64;
+        try{
+          const b64=it.photo.split(',')[1];
+          const imgId=wb.addImage({base64:b64,extension:'jpeg'});
+          ws.addImage(imgId,{tl:{col:1.15,row:r.number-1+0.1},ext:{width:76,height:76}});
+        }catch(e){}
+      }else{r.height=20;}
+    });
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const stamp=new Date().toISOString().slice(0,10);
+    const fname=`stok_sayim_${stamp}.xlsx`;
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=fname;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    toast('Excel hazır ✓<br>Paylaş menüsünden gönderebilirsin','ok');
+  }catch(e){
+    console.error(e);toast('Dışa aktarma hatası','err');
+  }finally{
+    btn.disabled=false;btn.innerHTML=orig;
+  }
+}
+
+/* ---------- Events ---------- */
+$('addBtn').onclick=()=>{resetForm();openSheet();};
+$('cancelBtn').onclick=closeSheet;
+sheetWrap.onclick=e=>{if(e.target===sheetWrap)closeSheet();};
+$('saveBtn').onclick=save;
+$('exportBtn').onclick=exportExcel;
+searchEl.oninput=render;
+
+$('photoZone').onclick=e=>{if(e.target.closest('#photoClear'))return;$('photoInput').click();};
+$('photoClear').onclick=e=>{e.stopPropagation();pendingPhoto=null;setPhotoPreview(null);$('photoInput').value='';};
+$('photoInput').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    toast('Fotoğraf işleniyor…');
+    const data=await processImage(f);
+    pendingPhoto=data;setPhotoPreview(data);
+    toast('Fotoğraf eklendi','ok');
+  }catch(err){toast('Fotoğraf okunamadı','err');}
+};
+$('qtyMinus').onclick=()=>{const q=$('fQty');q.value=Math.max(0,(parseInt(q.value,10)||0)-1);};
+$('qtyPlus').onclick=()=>{const q=$('fQty');q.value=(parseInt(q.value,10)||0)+1;};
+
+/* ---------- Boot ---------- */
+(async()=>{
+  try{
+    await openDB();
+    items=await dbGetAll();
+    render();
+  }catch(e){
+    console.error(e);
+    listEl.innerHTML='<div class="empty"><h2>Depolama açılamadı</h2><p>Safari kullandığından ve gizli modda olmadığından emin ol.</p></div>';
+  }
+})();
+</script>
+</body>
+</html>
