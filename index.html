@@ -74,6 +74,17 @@
   .flow-mini{font-size:12px;font-weight:600}
   .flow-mini .i{color:var(--in)} .flow-mini .o{color:var(--out)}
   .chev{flex:0 0 auto;width:20px;height:20px;stroke:var(--dim)}
+  /* low stock (<2) blinking alert */
+  .card.low{animation:lowblink 1.1s ease-in-out infinite}
+  .card.low .big-stock{color:var(--danger)}
+  @keyframes lowblink{
+    0%,100%{border-color:var(--line);box-shadow:none;background:var(--panel)}
+    50%{border-color:var(--danger);box-shadow:0 0 0 2px rgba(248,113,113,.45);background:#241417}
+  }
+  .low-tag{display:inline-block;font-size:10px;font-weight:800;color:#fff;background:var(--danger);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:.3px;vertical-align:middle}
+  @media (prefers-reduced-motion:reduce){
+    .card.low{animation:none;border-color:var(--danger);background:#241417;box-shadow:0 0 0 2px rgba(248,113,113,.4)}
+  }
 
   .fab{position:fixed;right:20px;bottom:calc(env(safe-area-inset-bottom) + 20px);z-index:25;width:60px;height:60px;border-radius:50%;border:none;background:var(--accent);box-shadow:0 8px 24px rgba(240,180,41,.35);display:flex;align-items:center;justify-content:center}
   .fab svg{width:28px;height:28px;stroke:var(--accent-ink);stroke-width:2.5}
@@ -237,8 +248,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 /* ===== XLSX BUILDER (tested) ===== */
-(function(root){
-  const EMU=9525;
+(function (root) {
+  const EMU = 9525;            // per pixel
+  const EMU_PT = 12700;        // per point
   function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');}
   function colLetter(n){let s='';n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26;}return s;}
   function cell(ref,val,isNum,styleId){const s=styleId?` s="${styleId}"`:'';if(isNum)return `<c r="${ref}"${s}><v>${val}</v></c>`;if(val===''||val==null)return `<c r="${ref}"${s}/>`;return `<c r="${ref}"${s} t="inlineStr"><is><t xml:space="preserve">${esc(val)}</t></is></c>`;}
@@ -251,31 +263,39 @@
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>${colsXml}</cols><sheetData>${rowsXml}</sheetData>${drawing}</worksheet>`;
   }
   function stylesXml(){return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF1A1204"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF0B429"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs></styleSheet>`;}
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF1A1204"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF7F1D1D"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF0B429"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFF8080"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="5"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs></styleSheet>`;}
   function build(data,JSZip){
     const zip=new JSZip();
+    // Fotoğraf column = 11 (≈82px), image rows = 60pt (≈80px) → near square, minimal distortion
+    const IMG_ROW_PT=60, PHOTO_COL_PX=Math.round(11*7)+5; // 82
+    const cellW_EMU=PHOTO_COL_PX*EMU, cellH_EMU=IMG_ROW_PT*EMU_PT, marg=4*EMU;
     const media=[];
     data.products.forEach((p,i)=>{if(p.photoB64){const idx=media.length+1;media.push({name:`image${idx}.jpeg`,b64:p.photoB64,relId:`rIdImg${idx}`,picId:1000+idx,row:i+1});}});
-    const s1cols=[6,13,26,16,12,9,8,8,12,28,18];
+    // Sheet 1: Genel Stok
+    const s1cols=[6,11,26,16,12,9,8,8,12,28,18];
     const s1head=['Sıra','Fotoğraf','Ürün Adı','Kod','Konum','Açılış','Giriş','Çıkış','Mevcut','Not','Tarih'];
     const s1rows=[s1head.map(h=>({v:h,style:1}))]; const s1h={};
-    data.products.forEach((p,i)=>{s1rows.push([{v:p.no,num:true},{v:''},{v:p.name,style:2},{v:p.code,style:2},{v:p.loc,style:2},{v:p.opening,num:true},{v:p.totalIn,num:true},{v:p.totalOut,num:true},{v:p.current,num:true},{v:p.note,style:2},{v:p.date,style:2}]);s1h[i+1]=p.photoB64?62:20;});
+    data.products.forEach((p,i)=>{
+      const low=(p.current<2); const sn=low?3:0; const st=low?4:2;
+      s1rows.push([{v:p.no,num:true,style:sn},{v:'',style:sn},{v:p.name,style:st},{v:p.code,style:st},{v:p.loc,style:st},{v:p.opening,num:true,style:sn},{v:p.totalIn,num:true,style:sn},{v:p.totalOut,num:true,style:sn},{v:p.current,num:true,style:sn},{v:p.note,style:st},{v:p.date,style:st}]);
+      s1h[i+1]=p.photoB64?IMG_ROW_PT:20;
+    });
     const hasImg=media.length>0;
     zip.file('xl/worksheets/sheet1.xml',sheetXml({cols:s1cols,rows:s1rows,rowHeights:s1h,hasDrawing:hasImg}));
-    const s2cols=[6,26,16,24,9,13,13,18];
-    const s2head=['Sıra','Ürün','Kod','Firma','Adet','Birim Fiyat','Tutar','Tarih'];
-    const s2rows=[s2head.map(h=>({v:h,style:1}))];
+    // Sheet 2: Giriş
+    const s2rows=[['Sıra','Ürün','Kod','Firma','Adet','Birim Fiyat','Tutar','Tarih'].map(h=>({v:h,style:1}))];
     data.ins.forEach(m=>s2rows.push([{v:m.no,num:true},{v:m.name,style:2},{v:m.code,style:2},{v:m.company,style:2},{v:m.qty,num:true},{v:m.price,num:true},{v:m.total,num:true},{v:m.date,style:2}]));
-    zip.file('xl/worksheets/sheet2.xml',sheetXml({cols:s2cols,rows:s2rows}));
-    const s3cols=[6,26,16,26,9,18];
-    const s3head=['Sıra','Ürün','Kod','Personel','Adet','Tarih'];
-    const s3rows=[s3head.map(h=>({v:h,style:1}))];
+    zip.file('xl/worksheets/sheet2.xml',sheetXml({cols:[6,26,16,24,9,13,13,18],rows:s2rows}));
+    // Sheet 3: Çıkış
+    const s3rows=[['Sıra','Ürün','Kod','Personel','Adet','Tarih'].map(h=>({v:h,style:1}))];
     data.outs.forEach(m=>s3rows.push([{v:m.no,num:true},{v:m.name,style:2},{v:m.code,style:2},{v:m.person,style:2},{v:m.qty,num:true},{v:m.date,style:2}]));
-    zip.file('xl/worksheets/sheet3.xml',sheetXml({cols:s3cols,rows:s3rows}));
+    zip.file('xl/worksheets/sheet3.xml',sheetXml({cols:[6,26,16,26,9,18],rows:s3rows}));
+    // Media + drawing (twoCellAnchor, image pinned inside the Fotoğraf cell of its row)
     if(hasImg){
       media.forEach(m=>zip.file('xl/media/'+m.name,m.b64,{base64:true}));
-      const size=58*EMU;
-      const anchors=media.map(m=>`<xdr:oneCellAnchor><xdr:from><xdr:col>1</xdr:col><xdr:colOff>${Math.round(6*EMU)}</xdr:colOff><xdr:row>${m.row}</xdr:row><xdr:rowOff>${Math.round(2*EMU)}</xdr:rowOff></xdr:from><xdr:ext cx="${size}" cy="${size}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${m.picId}" name="${m.name}"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="${m.relId}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${size}" cy="${size}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>`).join('');
+      const fromColOff=Math.round(marg), fromRowOff=Math.round(marg);
+      const toColOff=Math.round(cellW_EMU-marg), toRowOff=Math.round(cellH_EMU-marg);
+      const anchors=media.map(m=>`<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>1</xdr:col><xdr:colOff>${fromColOff}</xdr:colOff><xdr:row>${m.row}</xdr:row><xdr:rowOff>${fromRowOff}</xdr:rowOff></xdr:from><xdr:to><xdr:col>1</xdr:col><xdr:colOff>${toColOff}</xdr:colOff><xdr:row>${m.row}</xdr:row><xdr:rowOff>${toRowOff}</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${m.picId}" name="${m.name}"/><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="${m.relId}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cellW_EMU}" cy="${cellH_EMU}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor>`).join('');
       zip.file('xl/drawings/drawing1.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">${anchors}</xdr:wsDr>`);
       zip.file('xl/drawings/_rels/drawing1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -347,11 +367,11 @@ function render(){
     listEl.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12l8.73-5.04M12 22V12"/></svg><h2>${items.length?'Sonuç yok':'Henüz ürün yok'}</h2><p>${items.length?'Aramayı değiştir':'Sağ alttaki + ile ilk ürünü ekle'}</p></div>`;
     return;
   }
-  listEl.innerHTML=filtered.map(it=>{const c=computed(it);return `
-    <div class="card" onclick="openDetail('${it.id}')">
+  listEl.innerHTML=filtered.map(it=>{const c=computed(it);const low=c.current<2;return `
+    <div class="card${low?' low':''}" onclick="openDetail('${it.id}')">
       ${it.photo?`<img class="thumb" src="${it.photo}" alt="">`:`<div class="thumb ph"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`}
       <div class="card-body">
-        <p class="card-title">${esc(it.name)||'(isimsiz)'}</p>
+        <p class="card-title">${esc(it.name)||'(isimsiz)'}${low?'<span class="low-tag">STOK AZALDI</span>':''}</p>
         <div class="card-code">${esc(it.code)||''}${it.loc?' · 📍'+esc(it.loc):''}</div>
         <div class="card-flow">
           <span class="big-stock">${c.current}<small>adet</small></span>
