@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Stok Sayım">
-<meta name="theme-color" content="#12161c">
+<meta name="theme-color" content="#0e1116">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2312161c'/%3E%3Cg fill='none' stroke='%23f0b429' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M52 62l38-20 38 20v56l-38 20-38-20z'/%3E%3Cpath d='M52 62l38 20 38-20M90 82v56'/%3E%3C/g%3E%3C/svg%3E">
 <title>Stok Sayım</title>
 <style>
@@ -14,7 +14,8 @@
     --bg:#0e1116; --panel:#161b23; --panel2:#1d2531; --line:#2a3341;
     --ink:#eef2f7; --muted:#94a3b8; --dim:#64748b;
     --accent:#f0b429; --accent-ink:#1a1204;
-    --ok:#34d399; --danger:#f87171; --danger-bg:#2a1616;
+    --in:#34d399; --in-bg:#0f2a20; --out:#fb923c; --out-bg:#2a1c0f;
+    --danger:#f87171;
     --r:14px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -22,212 +23,167 @@
   body{
     background:var(--bg); color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
-    font-size:16px; line-height:1.4;
+    font-size:16px; line-height:1.4; -webkit-font-smoothing:antialiased;
     padding-bottom:env(safe-area-inset-bottom);
-    -webkit-font-smoothing:antialiased;
   }
-  /* HEADER */
   header{
-    position:sticky; top:0; z-index:20;
-    background:var(--panel);
+    position:sticky; top:0; z-index:20; background:var(--panel);
     padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
-    border-bottom:1px solid var(--line);
-    display:flex; align-items:center; gap:12px;
+    border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px;
   }
   header .mark{width:34px;height:34px;flex:0 0 auto}
-  header h1{font-size:18px;font-weight:700;margin:0;letter-spacing:.2px}
   header .sub{font-size:12px;color:var(--dim);font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+  header h1{font-size:18px;font-weight:700;margin:0}
   header .spacer{flex:1}
-  .count-badge{
-    background:var(--panel2); border:1px solid var(--line);
-    border-radius:999px; padding:6px 12px; text-align:right; line-height:1.1;
-  }
-  .count-badge b{font-size:16px;color:var(--accent);font-variant-numeric:tabular-nums}
-  .count-badge span{display:block;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
-
-  /* TOOLBAR */
-  .toolbar{padding:12px 16px 0;display:flex;gap:10px}
-  .search{
-    flex:1;position:relative
-  }
-  .search input{
-    width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);
-    border-radius:12px;padding:12px 14px 12px 40px;font-size:16px;outline:none;
-  }
-  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--dim)}
   .btn-export{
-    background:var(--panel);border:1px solid var(--line);color:var(--ink);
-    border-radius:12px;padding:0 16px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:7px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:12px;padding:9px 14px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:7px;
   }
   .btn-export svg{width:17px;height:17px;stroke:var(--accent)}
-  .btn-export:active{background:var(--panel2)}
-  .btn-export:disabled{opacity:.4}
+  .btn-export:active{background:var(--line)} .btn-export:disabled{opacity:.4}
 
-  /* LIST */
+  /* stats strip */
+  .stats{display:flex;gap:8px;padding:12px 16px 0}
+  .stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 10px;text-align:center}
+  .stat b{display:block;font-size:18px;font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat span{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
+  .stat.s-stock b{color:var(--accent)} .stat.s-in b{color:var(--in)} .stat.s-out b{color:var(--out)}
+
+  .toolbar{padding:12px 16px 0}
+  .search{position:relative}
+  .search input{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:12px 14px 12px 40px;font-size:16px;outline:none}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--dim)}
+
   main{padding:12px 16px 120px}
-  .empty{
-    text-align:center;padding:64px 24px;color:var(--muted)
-  }
+  .empty{text-align:center;padding:56px 24px;color:var(--muted)}
   .empty svg{width:56px;height:56px;stroke:var(--line);margin-bottom:16px}
   .empty h2{color:var(--ink);font-size:17px;margin:0 0 6px}
   .empty p{margin:0;font-size:14px;color:var(--dim)}
 
-  .card{
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
-    padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;
-  }
-  .thumb{
-    width:64px;height:64px;border-radius:10px;flex:0 0 auto;object-fit:cover;
-    background:var(--panel2);border:1px solid var(--line);
-  }
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+  .card:active{background:var(--panel2)}
+  .thumb{width:60px;height:60px;border-radius:10px;flex:0 0 auto;object-fit:cover;background:var(--panel2);border:1px solid var(--line)}
   .thumb.ph{display:flex;align-items:center;justify-content:center}
   .thumb.ph svg{width:24px;height:24px;stroke:var(--dim)}
   .card-body{flex:1;min-width:0}
-  .card-title{font-weight:700;font-size:16px;margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .card-code{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;margin-bottom:6px}
-  .card-meta{display:flex;flex-wrap:wrap;gap:6px}
-  .chip{
-    font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;
-    background:var(--panel2);border:1px solid var(--line);color:var(--muted)
-  }
-  .chip.qty{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
-  .card-note{font-size:13px;color:var(--muted);margin-top:7px;overflow-wrap:anywhere}
-  .card-actions{display:flex;flex-direction:column;gap:8px;flex:0 0 auto}
-  .icon-btn{
-    width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);
-    display:flex;align-items:center;justify-content:center
-  }
-  .icon-btn svg{width:16px;height:16px;stroke:var(--muted)}
-  .icon-btn.del svg{stroke:var(--danger)}
-  .icon-btn:active{background:var(--line)}
+  .card-title{font-weight:700;font-size:16px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card-code{font-size:12px;color:var(--dim);margin:1px 0 6px}
+  .card-flow{display:flex;gap:12px;align-items:baseline}
+  .big-stock{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent);line-height:1}
+  .big-stock small{font-size:11px;color:var(--dim);font-weight:600;margin-left:3px}
+  .flow-mini{font-size:12px;font-weight:600}
+  .flow-mini .i{color:var(--in)} .flow-mini .o{color:var(--out)}
+  .chev{flex:0 0 auto;width:20px;height:20px;stroke:var(--dim)}
 
-  /* FAB */
-  .fab{
-    position:fixed;right:20px;bottom:calc(env(safe-area-inset-bottom) + 20px);z-index:25;
-    width:60px;height:60px;border-radius:50%;border:none;
-    background:var(--accent);color:var(--accent-ink);
-    box-shadow:0 8px 24px rgba(240,180,41,.35);
-    display:flex;align-items:center;justify-content:center;
-  }
+  .fab{position:fixed;right:20px;bottom:calc(env(safe-area-inset-bottom) + 20px);z-index:25;width:60px;height:60px;border-radius:50%;border:none;background:var(--accent);box-shadow:0 8px 24px rgba(240,180,41,.35);display:flex;align-items:center;justify-content:center}
   .fab svg{width:28px;height:28px;stroke:var(--accent-ink);stroke-width:2.5}
   .fab:active{transform:scale(.94)}
 
-  /* MODAL */
-  .sheet-wrap{
-    position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);
-    display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s
-  }
+  /* sheets */
+  .sheet-wrap{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s}
   .sheet-wrap.open{opacity:1;pointer-events:auto}
-  .sheet{
-    background:var(--bg);width:100%;max-height:92vh;overflow-y:auto;
-    border-radius:20px 20px 0 0;border-top:1px solid var(--line);
-    transform:translateY(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);
-    padding-bottom:calc(env(safe-area-inset-bottom) + 16px);
-    -webkit-overflow-scrolling:touch;
-  }
+  #productSheet{z-index:40} #detailSheet{z-index:45} #moveSheet{z-index:50}
+  .sheet{background:var(--bg);width:100%;max-height:93vh;overflow-y:auto;border-radius:20px 20px 0 0;border-top:1px solid var(--line);transform:translateY(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);padding-bottom:calc(env(safe-area-inset-bottom) + 16px);-webkit-overflow-scrolling:touch}
   .sheet-wrap.open .sheet{transform:translateY(0)}
-  .sheet-head{
-    position:sticky;top:0;background:var(--bg);padding:16px;display:flex;align-items:center;
-    border-bottom:1px solid var(--line);z-index:2
-  }
-  .sheet-head h3{margin:0;font-size:17px;flex:1}
+  .sheet-head{position:sticky;top:0;background:var(--bg);padding:16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);z-index:2}
+  .sheet-head h3{margin:0;font-size:17px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sheet-head .cancel{background:none;border:none;color:var(--muted);font-size:16px;padding:6px}
   .sheet-body{padding:16px}
 
-  .photo-zone{
-    border:2px dashed var(--line);border-radius:var(--r);aspect-ratio:16/10;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-    color:var(--muted);position:relative;overflow:hidden;background:var(--panel);margin-bottom:18px;
-  }
+  .photo-zone{border:2px dashed var(--line);border-radius:var(--r);aspect-ratio:16/10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);position:relative;overflow:hidden;background:var(--panel);margin-bottom:18px}
   .photo-zone svg{width:34px;height:34px;stroke:var(--accent)}
   .photo-zone span{font-size:14px;font-weight:600}
   .photo-zone img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .photo-clear{
-    position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;
-    background:rgba(0,0,0,.6);border:none;display:flex;align-items:center;justify-content:center;z-index:2
-  }
+  .photo-clear{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.6);border:none;display:flex;align-items:center;justify-content:center;z-index:2}
   .photo-clear svg{width:16px;height:16px;stroke:#fff}
   input[type=file]{display:none}
 
   .field{margin-bottom:14px}
   .field label{display:block;font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
-  .field input,.field textarea{
-    width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);
-    border-radius:12px;padding:13px 14px;font-size:16px;outline:none;font-family:inherit
-  }
+  .field input,.field textarea{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:13px 14px;font-size:16px;outline:none;font-family:inherit}
   .field input:focus,.field textarea:focus{border-color:var(--accent)}
-  .field textarea{resize:none;min-height:74px}
-  .row2{display:flex;gap:12px}
-  .row2 .field{flex:1}
-  .qty-wrap{display:flex;align-items:stretch;gap:10px}
+  .field textarea{resize:none;min-height:70px}
+  .row2{display:flex;gap:12px} .row2 .field{flex:1}
+  .qty-wrap{display:flex;gap:10px}
   .qty-wrap input{text-align:center;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
-  .qty-btn{
-    width:52px;flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ink);
-    border-radius:12px;font-size:26px;font-weight:400;line-height:1
-  }
+  .qty-btn{width:52px;flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:12px;font-size:26px;line-height:1}
   .qty-btn:active{background:var(--panel2)}
-  .save{
-    width:100%;background:var(--accent);color:var(--accent-ink);border:none;border-radius:14px;
-    padding:16px;font-size:17px;font-weight:700;margin-top:6px
-  }
-  .save:active{filter:brightness(.94)}
-  .save:disabled{opacity:.4}
+  .save{width:100%;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:700;margin-top:6px;color:var(--accent-ink);background:var(--accent)}
+  .save:active{filter:brightness(.94)} .save:disabled{opacity:.4}
+  .save.in{background:var(--in);color:#052015} .save.out{background:var(--out);color:#2a1400}
 
-  /* TOAST */
-  .toast{
-    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);transform:translate(-50%,20px);
-    background:var(--panel2);border:1px solid var(--line);color:var(--ink);
-    padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;z-index:60;
-    opacity:0;pointer-events:none;transition:all .25s;max-width:88%;text-align:center
-  }
+  /* detail */
+  .detail-hero{display:flex;gap:14px;align-items:center;margin-bottom:16px}
+  .detail-hero img,.detail-hero .ph{width:76px;height:76px;border-radius:12px;object-fit:cover;background:var(--panel2);border:1px solid var(--line);flex:0 0 auto}
+  .detail-hero .ph{display:flex;align-items:center;justify-content:center}
+  .detail-hero .ph svg{width:28px;height:28px;stroke:var(--dim)}
+  .detail-hero .meta{min-width:0}
+  .detail-hero .meta .code{font-size:13px;color:var(--dim)}
+  .detail-hero .meta .loc{font-size:13px;color:var(--muted);margin-top:2px}
+  .stock-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;text-align:center;margin-bottom:16px}
+  .stock-box .num{font-size:38px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1}
+  .stock-box .lbl{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .stock-box .brk{display:flex;justify-content:center;gap:18px;margin-top:12px;font-size:13px;font-weight:600}
+  .stock-box .brk .i{color:var(--in)} .stock-box .brk .o{color:var(--out)} .stock-box .brk .op{color:var(--muted)}
+  .move-btns{display:flex;gap:10px;margin-bottom:18px}
+  .move-btns button{flex:1;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px}
+  .move-btns svg{width:18px;height:18px;stroke-width:2.5}
+  .mb-in{background:var(--in-bg);color:var(--in);border:1px solid #1c4d3a!important} .mb-in svg{stroke:var(--in)}
+  .mb-out{background:var(--out-bg);color:var(--out);border:1px solid #4d341c!important} .mb-out svg{stroke:var(--out)}
+  .ledger-title{font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px}
+  .mv{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .mv:last-child{border-bottom:none}
+  .mv-badge{width:44px;flex:0 0 auto;text-align:center;font-size:10px;font-weight:800;padding:5px 0;border-radius:8px;letter-spacing:.3px}
+  .mv-badge.in{background:var(--in-bg);color:var(--in)} .mv-badge.out{background:var(--out-bg);color:var(--out)}
+  .mv-body{flex:1;min-width:0}
+  .mv-who{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mv-sub{font-size:12px;color:var(--dim);margin-top:1px}
+  .mv-qty{font-weight:800;font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .mv-qty.in{color:var(--in)} .mv-qty.out{color:var(--out)}
+  .mv-del{background:none;border:none;padding:6px;flex:0 0 auto}
+  .mv-del svg{width:16px;height:16px;stroke:var(--dim)}
+  .no-mv{color:var(--dim);font-size:14px;text-align:center;padding:20px 0}
+  .detail-foot{display:flex;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+  .detail-foot button{flex:1;border-radius:12px;padding:12px;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+  .detail-foot .del{color:var(--danger)}
+
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);transform:translate(-50%,20px);background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;z-index:60;opacity:0;pointer-events:none;transition:all .25s;max-width:88%;text-align:center}
   .toast.show{opacity:1;transform:translate(-50%,0)}
-  .toast.ok{border-color:var(--ok)}
-  .toast.err{border-color:var(--danger)}
-  .spin{animation:sp 1s linear infinite;display:inline-block}
-  @keyframes sp{to{transform:rotate(360deg)}}
+  .toast.ok{border-color:var(--in)} .toast.err{border-color:var(--danger)}
+  .spin{animation:sp 1s linear infinite;display:inline-block}@keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
 <header>
-  <svg class="mark" viewBox="0 0 180 180" fill="none">
-    <rect width="180" height="180" rx="40" fill="#161b23"/>
-    <g stroke="#f0b429" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M52 62l38-20 38 20v56l-38 20-38-20z"/><path d="M52 62l38 20 38-20M90 82v56"/>
-    </g>
-  </svg>
-  <div>
-    <div class="sub">Depo</div>
-    <h1>Stok Sayım</h1>
-  </div>
+  <svg class="mark" viewBox="0 0 180 180" fill="none"><rect width="180" height="180" rx="40" fill="#161b23"/><g stroke="#f0b429" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M52 62l38-20 38 20v56l-38 20-38-20z"/><path d="M52 62l38 20 38-20M90 82v56"/></g></svg>
+  <div><div class="sub">Depo</div><h1>Stok Sayım</h1></div>
   <div class="spacer"></div>
-  <div class="count-badge"><b id="countNum">0</b><span>kayıt</span></div>
+  <button class="btn-export" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Excel</button>
 </header>
+
+<div class="stats">
+  <div class="stat s-stock"><b id="stTotal">0</b><span>Toplam stok</span></div>
+  <div class="stat s-in"><b id="stIn">0</b><span>Giriş</span></div>
+  <div class="stat s-out"><b id="stOut">0</b><span>Çıkış</span></div>
+  <div class="stat"><b id="stCount">0</b><span>Ürün</span></div>
+</div>
 
 <div class="toolbar">
   <div class="search">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
     <input id="search" type="search" placeholder="Ara: ürün, kod, konum…" autocomplete="off">
   </div>
-  <button class="btn-export" id="exportBtn">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
-    Excel
-  </button>
 </div>
 
 <main id="list"></main>
 
-<button class="fab" id="addBtn" aria-label="Yeni kayıt">
-  <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-</button>
+<button class="fab" id="addBtn" aria-label="Yeni ürün"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 
-<!-- ENTRY SHEET -->
-<div class="sheet-wrap" id="sheetWrap">
+<!-- PRODUCT SHEET -->
+<div class="sheet-wrap" id="productSheet">
   <div class="sheet">
-    <div class="sheet-head">
-      <h3 id="sheetTitle">Yeni Kayıt</h3>
-      <button class="cancel" id="cancelBtn">İptal</button>
-    </div>
+    <div class="sheet-head"><h3 id="pTitle">Yeni Ürün</h3><button class="cancel" data-close="productSheet">İptal</button></div>
     <div class="sheet-body">
       <div class="photo-zone" id="photoZone">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -236,284 +192,296 @@
         <button class="photo-clear" id="photoClear" hidden><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
       <input type="file" id="photoInput" accept="image/*">
-
-      <div class="field">
-        <label>Ürün adı</label>
-        <input id="fName" type="text" placeholder="Ürün adı" autocomplete="off">
-      </div>
+      <div class="field"><label>Ürün adı</label><input id="fName" type="text" placeholder="Ürün adı" autocomplete="off"></div>
       <div class="row2">
-        <div class="field">
-          <label>Ürün / barkod kodu</label>
-          <input id="fCode" type="text" placeholder="Kod" autocomplete="off" inputmode="text">
-        </div>
-        <div class="field">
-          <label>Konum / raf</label>
-          <input id="fLoc" type="text" placeholder="Raf" autocomplete="off">
-        </div>
+        <div class="field"><label>Ürün / barkod kodu</label><input id="fCode" type="text" placeholder="Kod" autocomplete="off"></div>
+        <div class="field"><label>Konum / raf</label><input id="fLoc" type="text" placeholder="Raf" autocomplete="off"></div>
       </div>
-      <div class="field">
-        <label>Adet</label>
-        <div class="qty-wrap">
-          <button class="qty-btn" id="qtyMinus" type="button">−</button>
-          <input id="fQty" type="number" inputmode="numeric" value="1" min="0">
-          <button class="qty-btn" id="qtyPlus" type="button">+</button>
+      <div class="field"><label>Açılış / sayım stoğu</label>
+        <div class="qty-wrap"><button class="qty-btn" id="qtyMinus" type="button">−</button><input id="fQty" type="number" inputmode="numeric" value="0" min="0"><button class="qty-btn" id="qtyPlus" type="button">+</button></div>
+      </div>
+      <div class="field"><label>Not</label><textarea id="fNote" placeholder="Durum, hasar, açıklama…"></textarea></div>
+      <button class="save" id="saveProduct">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL SHEET -->
+<div class="sheet-wrap" id="detailSheet">
+  <div class="sheet">
+    <div class="sheet-head"><h3 id="dTitle">Ürün</h3><button class="cancel" data-close="detailSheet">Kapat</button></div>
+    <div class="sheet-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- MOVE SHEET (giriş/çıkış) -->
+<div class="sheet-wrap" id="moveSheet">
+  <div class="sheet">
+    <div class="sheet-head"><h3 id="mTitle">Hareket</h3><button class="cancel" data-close="moveSheet">İptal</button></div>
+    <div class="sheet-body">
+      <div class="field" id="mWhoField"><label id="mWhoLabel">Personel ad soyad</label><input id="mWho" type="text" autocomplete="off"></div>
+      <div class="row2">
+        <div class="field"><label>Adet</label>
+          <div class="qty-wrap"><button class="qty-btn" id="mMinus" type="button">−</button><input id="mQty" type="number" inputmode="numeric" value="1" min="1"><button class="qty-btn" id="mPlus" type="button">+</button></div>
         </div>
+        <div class="field" id="mPriceField"><label>Birim fiyat (₺)</label><input id="mPrice" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01"></div>
       </div>
-      <div class="field">
-        <label>Not</label>
-        <textarea id="fNote" placeholder="Durum, hasar, açıklama…"></textarea>
-      </div>
-      <button class="save" id="saveBtn">Kaydet</button>
+      <div class="field"><label>Tarih</label><input id="mDate" type="date"></div>
+      <button class="save" id="saveMove">Kaydet</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
+/* ===== XLSX BUILDER (tested) ===== */
+(function(root){
+  const EMU=9525;
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');}
+  function colLetter(n){let s='';n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26;}return s;}
+  function cell(ref,val,isNum,styleId){const s=styleId?` s="${styleId}"`:'';if(isNum)return `<c r="${ref}"${s}><v>${val}</v></c>`;if(val===''||val==null)return `<c r="${ref}"${s}/>`;return `<c r="${ref}"${s} t="inlineStr"><is><t xml:space="preserve">${esc(val)}</t></is></c>`;}
+  function sheetXml(spec){
+    const colsXml=spec.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
+    let rowsXml='';
+    spec.rows.forEach((cells,r)=>{const rn=r+1;const h=spec.rowHeights&&spec.rowHeights[r];const ht=h?` ht="${h}" customHeight="1"`:'';rowsXml+=`<row r="${rn}"${ht}>`+cells.map((c,ci)=>cell(colLetter(ci)+rn,c.v,c.num,c.style)).join('')+`</row>`;});
+    const drawing=spec.hasDrawing?`<drawing r:id="rIdDr"/>`:'';
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>${colsXml}</cols><sheetData>${rowsXml}</sheetData>${drawing}</worksheet>`;
+  }
+  function stylesXml(){return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF1A1204"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF0B429"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs></styleSheet>`;}
+  function build(data,JSZip){
+    const zip=new JSZip();
+    const media=[];
+    data.products.forEach((p,i)=>{if(p.photoB64){const idx=media.length+1;media.push({name:`image${idx}.jpeg`,b64:p.photoB64,relId:`rIdImg${idx}`,picId:1000+idx,row:i+1});}});
+    const s1cols=[6,13,26,16,12,9,8,8,12,28,18];
+    const s1head=['Sıra','Fotoğraf','Ürün Adı','Kod','Konum','Açılış','Giriş','Çıkış','Mevcut','Not','Tarih'];
+    const s1rows=[s1head.map(h=>({v:h,style:1}))]; const s1h={};
+    data.products.forEach((p,i)=>{s1rows.push([{v:p.no,num:true},{v:''},{v:p.name,style:2},{v:p.code,style:2},{v:p.loc,style:2},{v:p.opening,num:true},{v:p.totalIn,num:true},{v:p.totalOut,num:true},{v:p.current,num:true},{v:p.note,style:2},{v:p.date,style:2}]);s1h[i+1]=p.photoB64?62:20;});
+    const hasImg=media.length>0;
+    zip.file('xl/worksheets/sheet1.xml',sheetXml({cols:s1cols,rows:s1rows,rowHeights:s1h,hasDrawing:hasImg}));
+    const s2cols=[6,26,16,24,9,13,13,18];
+    const s2head=['Sıra','Ürün','Kod','Firma','Adet','Birim Fiyat','Tutar','Tarih'];
+    const s2rows=[s2head.map(h=>({v:h,style:1}))];
+    data.ins.forEach(m=>s2rows.push([{v:m.no,num:true},{v:m.name,style:2},{v:m.code,style:2},{v:m.company,style:2},{v:m.qty,num:true},{v:m.price,num:true},{v:m.total,num:true},{v:m.date,style:2}]));
+    zip.file('xl/worksheets/sheet2.xml',sheetXml({cols:s2cols,rows:s2rows}));
+    const s3cols=[6,26,16,26,9,18];
+    const s3head=['Sıra','Ürün','Kod','Personel','Adet','Tarih'];
+    const s3rows=[s3head.map(h=>({v:h,style:1}))];
+    data.outs.forEach(m=>s3rows.push([{v:m.no,num:true},{v:m.name,style:2},{v:m.code,style:2},{v:m.person,style:2},{v:m.qty,num:true},{v:m.date,style:2}]));
+    zip.file('xl/worksheets/sheet3.xml',sheetXml({cols:s3cols,rows:s3rows}));
+    if(hasImg){
+      media.forEach(m=>zip.file('xl/media/'+m.name,m.b64,{base64:true}));
+      const size=58*EMU;
+      const anchors=media.map(m=>`<xdr:oneCellAnchor><xdr:from><xdr:col>1</xdr:col><xdr:colOff>${Math.round(6*EMU)}</xdr:colOff><xdr:row>${m.row}</xdr:row><xdr:rowOff>${Math.round(2*EMU)}</xdr:rowOff></xdr:from><xdr:ext cx="${size}" cy="${size}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${m.picId}" name="${m.name}"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="${m.relId}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${size}" cy="${size}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>`).join('');
+      zip.file('xl/drawings/drawing1.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">${anchors}</xdr:wsDr>`);
+      zip.file('xl/drawings/_rels/drawing1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`+media.map(m=>`<Relationship Id="${m.relId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/${m.name}"/>`).join('')+`</Relationships>`);
+      zip.file('xl/worksheets/_rels/sheet1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdDr" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>`);
+    }
+    zip.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Genel Stok" sheetId="1" r:id="rId1"/><sheet name="Giriş Hareketleri" sheetId="2" r:id="rId2"/><sheet name="Çıkış Hareketleri" sheetId="3" r:id="rId3"/></sheets></workbook>`);
+    zip.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+    zip.file('xl/styles.xml',stylesXml());
+    zip.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${hasImg?'<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>':''}</Types>`);
+    zip.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdWB" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
+    return zip;
+  }
+  root.buildStockWorkbook=build;
+})(window);
+
+/* ===== APP ===== */
 "use strict";
-/* ---------- IndexedDB ---------- */
-const DB_NAME='stok_sayim', STORE='items';
-let db;
-function openDB(){
-  return new Promise((res,rej)=>{
-    const r=indexedDB.open(DB_NAME,1);
-    r.onupgradeneeded=e=>{
-      const d=e.target.result;
-      if(!d.objectStoreNames.contains(STORE)){
-        d.createObjectStore(STORE,{keyPath:'id'});
-      }
-    };
-    r.onsuccess=e=>{db=e.target.result;res()};
-    r.onerror=e=>rej(e.target.error);
-  });
-}
-function tx(mode){return db.transaction(STORE,mode).objectStore(STORE);}
+const DB_NAME='stok_sayim',STORE='items';let db;
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id'});};r.onsuccess=e=>{db=e.target.result;res();};r.onerror=e=>rej(e.target.error);});}
+function tx(m){return db.transaction(STORE,m).objectStore(STORE);}
 function dbGetAll(){return new Promise((res,rej)=>{const r=tx('readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});}
-function dbPut(item){return new Promise((res,rej)=>{const r=tx('readwrite').put(item);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+function dbPut(it){return new Promise((res,rej)=>{const r=tx('readwrite').put(it);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
 function dbDelete(id){return new Promise((res,rej)=>{const r=tx('readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
 
-/* ---------- State ---------- */
-let items=[];      // {id,name,code,loc,qty,note,photo(dataURL|null),date}
-let editingId=null;
-let pendingPhoto=null;
-
-/* ---------- Elements ---------- */
+let items=[]; let editingId=null; let pendingPhoto=null; let detailId=null; let moveType='out';
 const $=id=>document.getElementById(id);
-const listEl=$('list'), searchEl=$('search'), toastEl=$('toast');
-const sheetWrap=$('sheetWrap');
+const listEl=$('list'),searchEl=$('search'),toastEl=$('toast');
 
-/* ---------- Helpers ---------- */
-function toast(msg,type){
-  toastEl.className='toast show'+(type?' '+type:'');
-  toastEl.innerHTML=msg;
-  clearTimeout(toast._t);
-  toast._t=setTimeout(()=>toastEl.className='toast',2200);
-}
+function toast(m,t){toastEl.className='toast show'+(t?' '+t:'');toastEl.innerHTML=m;clearTimeout(toast._t);toast._t=setTimeout(()=>toastEl.className='toast',2400);}
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function fmtDate(ts){const d=new Date(ts);const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;}
+function pad(n){return String(n).padStart(2,'0');}
+function fmtDate(ts){const d=new Date(ts);return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;}
+function fmtDay(ts){const d=new Date(ts);return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;}
+function todayISO(){const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+function isoToTs(iso){return new Date(iso+'T12:00:00').getTime();}
+function money(n){return (Math.round(n*100)/100).toLocaleString('tr-TR');}
 
-/* Resize + compress photo to keep storage & Excel small */
-function processImage(file){
-  return new Promise((res,rej)=>{
-    const img=new Image();
-    const url=URL.createObjectURL(file);
-    img.onload=()=>{
-      const max=1100;
-      let {width:w,height:h}=img;
-      if(w>h && w>max){h=Math.round(h*max/w);w=max;}
-      else if(h>=w && h>max){w=Math.round(w*max/h);h=max;}
-      const c=document.createElement('canvas');
-      c.width=w;c.height=h;
-      c.getContext('2d').drawImage(img,0,0,w,h);
-      URL.revokeObjectURL(url);
-      res(c.toDataURL('image/jpeg',0.72));
-    };
-    img.onerror=e=>{URL.revokeObjectURL(url);rej(e);};
-    img.src=url;
-  });
+function computed(it){
+  let tin=0,tout=0;
+  (it.movements||[]).forEach(m=>{if(m.type==='in')tin+=m.qty;else tout+=m.qty;});
+  return {totalIn:tin,totalOut:tout,current:(it.opening||0)+tin-tout};
 }
 
-/* ---------- Render ---------- */
+/* ---- image compress ---- */
+function processImage(file){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{const max=1100;let w=img.width,h=img.height;if(w>h&&w>max){h=Math.round(h*max/w);w=max;}else if(h>=w&&h>max){w=Math.round(w*max/h);h=max;}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',0.72));};img.onerror=e=>{URL.revokeObjectURL(url);rej(e);};img.src=url;});}
+
+/* ---- sheet helpers ---- */
+function openS(id){$(id).classList.add('open');}
+function closeS(id){$(id).classList.remove('open');}
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeS(b.dataset.close));
+document.querySelectorAll('.sheet-wrap').forEach(w=>w.onclick=e=>{if(e.target===w)closeS(w.id);});
+
+/* ---- render list + stats ---- */
 function render(){
   const q=searchEl.value.trim().toLowerCase();
-  const filtered=items
-    .filter(it=>!q || (it.name+' '+it.code+' '+it.loc+' '+it.note).toLowerCase().includes(q))
-    .sort((a,b)=>b.date-a.date);
-  $('countNum').textContent=items.length;
+  let gStock=0,gIn=0,gOut=0;
+  items.forEach(it=>{const c=computed(it);gStock+=c.current;gIn+=c.totalIn;gOut+=c.totalOut;});
+  $('stTotal').textContent=gStock;$('stIn').textContent=gIn;$('stOut').textContent=gOut;$('stCount').textContent=items.length;
   $('exportBtn').disabled=items.length===0;
 
+  const filtered=items.filter(it=>!q||(it.name+' '+it.code+' '+it.loc+' '+it.note).toLowerCase().includes(q)).sort((a,b)=>b.date-a.date);
   if(filtered.length===0){
-    listEl.innerHTML=`<div class="empty">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12l8.73-5.04M12 22V12"/></svg>
-      <h2>${items.length?'Sonuç yok':'Henüz kayıt yok'}</h2>
-      <p>${items.length?'Aramayı değiştir':'Sağ alttaki + ile ilk ürünü ekle'}</p>
-    </div>`;
+    listEl.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12l8.73-5.04M12 22V12"/></svg><h2>${items.length?'Sonuç yok':'Henüz ürün yok'}</h2><p>${items.length?'Aramayı değiştir':'Sağ alttaki + ile ilk ürünü ekle'}</p></div>`;
     return;
   }
-  listEl.innerHTML=filtered.map(it=>`
-    <div class="card">
-      ${it.photo
-        ? `<img class="thumb" src="${it.photo}" alt="">`
-        : `<div class="thumb ph"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`}
+  listEl.innerHTML=filtered.map(it=>{const c=computed(it);return `
+    <div class="card" onclick="openDetail('${it.id}')">
+      ${it.photo?`<img class="thumb" src="${it.photo}" alt="">`:`<div class="thumb ph"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`}
       <div class="card-body">
         <p class="card-title">${esc(it.name)||'(isimsiz)'}</p>
-        ${it.code?`<div class="card-code">${esc(it.code)}</div>`:''}
-        <div class="card-meta">
-          <span class="chip qty">${it.qty} adet</span>
-          ${it.loc?`<span class="chip">📍 ${esc(it.loc)}</span>`:''}
-          <span class="chip">${fmtDate(it.date)}</span>
+        <div class="card-code">${esc(it.code)||''}${it.loc?' · 📍'+esc(it.loc):''}</div>
+        <div class="card-flow">
+          <span class="big-stock">${c.current}<small>adet</small></span>
+          <span class="flow-mini"><span class="i">↑${c.totalIn}</span> &nbsp; <span class="o">↓${c.totalOut}</span></span>
         </div>
-        ${it.note?`<div class="card-note">${esc(it.note)}</div>`:''}
       </div>
-      <div class="card-actions">
-        <button class="icon-btn" onclick="openEdit('${it.id}')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
-        <button class="icon-btn del" onclick="removeItem('${it.id}')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-      </div>
-    </div>`).join('');
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </div>`;}).join('');
 }
 
-/* ---------- Sheet ---------- */
-function openSheet(){sheetWrap.classList.add('open');}
-function closeSheet(){sheetWrap.classList.remove('open');}
-function resetForm(){
-  editingId=null;pendingPhoto=null;
-  $('sheetTitle').textContent='Yeni Kayıt';
-  $('fName').value='';$('fCode').value='';$('fLoc').value='';$('fQty').value='1';$('fNote').value='';
-  setPhotoPreview(null);
-}
-function setPhotoPreview(dataURL){
-  const img=$('photoPreview'),clr=$('photoClear');
-  if(dataURL){img.src=dataURL;img.hidden=false;clr.hidden=false;}
-  else{img.src='';img.hidden=true;clr.hidden=true;}
-}
-window.openEdit=function(id){
-  const it=items.find(x=>x.id===id);if(!it)return;
-  editingId=id;pendingPhoto=it.photo||null;
-  $('sheetTitle').textContent='Düzenle';
-  $('fName').value=it.name;$('fCode').value=it.code;$('fLoc').value=it.loc;
-  $('fQty').value=it.qty;$('fNote').value=it.note;
-  setPhotoPreview(it.photo||null);
-  openSheet();
-};
-window.removeItem=async function(id){
-  const it=items.find(x=>x.id===id);
-  if(!confirm(`"${it?it.name||'kayıt':'kayıt'}" silinsin mi?`))return;
-  await dbDelete(id);
-  items=items.filter(x=>x.id!==id);
-  render();toast('Silindi');
-};
-
-/* ---------- Save ---------- */
-async function save(){
-  const name=$('fName').value.trim();
-  const code=$('fCode').value.trim();
-  if(!name && !code){toast('Ürün adı veya kod gerekli','err');return;}
-  const item={
-    id: editingId || (Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
-    name, code,
-    loc: $('fLoc').value.trim(),
-    qty: parseInt($('fQty').value,10)||0,
-    note: $('fNote').value.trim(),
-    photo: pendingPhoto,
-    date: editingId ? (items.find(x=>x.id===editingId).date) : Date.now()
-  };
-  await dbPut(item);
-  if(editingId){items=items.map(x=>x.id===editingId?item:x);}
-  else{items.push(item);}
-  closeSheet();render();
-  toast(editingId?'Güncellendi':'Kaydedildi','ok');
-}
-
-/* ---------- Excel export ---------- */
-async function exportExcel(){
-  if(items.length===0)return;
-  const btn=$('exportBtn');
-  const orig=btn.innerHTML;
-  btn.disabled=true;
-  btn.innerHTML='<span class="spin">⏳</span>';
-  try{
-    if(typeof ExcelJS==='undefined'){toast('Excel motoru yüklenemedi.<br>İnternete bağlanıp tekrar dene.','err');return;}
-    const wb=new ExcelJS.Workbook();
-    const ws=wb.addWorksheet('Stok Sayım');
-    ws.columns=[
-      {header:'Sıra',key:'no',width:6},
-      {header:'Fotoğraf',key:'img',width:14},
-      {header:'Ürün Adı',key:'name',width:28},
-      {header:'Kod',key:'code',width:18},
-      {header:'Adet',key:'qty',width:8},
-      {header:'Konum',key:'loc',width:14},
-      {header:'Not',key:'note',width:30},
-      {header:'Tarih',key:'date',width:18},
-    ];
-    ws.getRow(1).font={bold:true,color:{argb:'FF1A1204'}};
-    ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0B429'}};
-    ws.getRow(1).height=22;
-    const sorted=[...items].sort((a,b)=>a.date-b.date);
-    sorted.forEach((it,i)=>{
-      const r=ws.addRow({
-        no:i+1,name:it.name,code:it.code,qty:it.qty,
-        loc:it.loc,note:it.note,date:fmtDate(it.date)
-      });
-      r.alignment={vertical:'middle',wrapText:true};
-      if(it.photo){
-        r.height=64;
-        try{
-          const b64=it.photo.split(',')[1];
-          const imgId=wb.addImage({base64:b64,extension:'jpeg'});
-          ws.addImage(imgId,{tl:{col:1.15,row:r.number-1+0.1},ext:{width:76,height:76}});
-        }catch(e){}
-      }else{r.height=20;}
-    });
-    const buf=await wb.xlsx.writeBuffer();
-    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    const stamp=new Date().toISOString().slice(0,10);
-    const fname=`stok_sayim_${stamp}.xlsx`;
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download=fname;document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),4000);
-    toast('Excel hazır ✓<br>Paylaş menüsünden gönderebilirsin','ok');
-  }catch(e){
-    console.error(e);toast('Dışa aktarma hatası','err');
-  }finally{
-    btn.disabled=false;btn.innerHTML=orig;
-  }
-}
-
-/* ---------- Events ---------- */
-$('addBtn').onclick=()=>{resetForm();openSheet();};
-$('cancelBtn').onclick=closeSheet;
-sheetWrap.onclick=e=>{if(e.target===sheetWrap)closeSheet();};
-$('saveBtn').onclick=save;
-$('exportBtn').onclick=exportExcel;
-searchEl.oninput=render;
-
-$('photoZone').onclick=e=>{if(e.target.closest('#photoClear'))return;$('photoInput').click();};
-$('photoClear').onclick=e=>{e.stopPropagation();pendingPhoto=null;setPhotoPreview(null);$('photoInput').value='';};
-$('photoInput').onchange=async e=>{
-  const f=e.target.files[0];if(!f)return;
-  try{
-    toast('Fotoğraf işleniyor…');
-    const data=await processImage(f);
-    pendingPhoto=data;setPhotoPreview(data);
-    toast('Fotoğraf eklendi','ok');
-  }catch(err){toast('Fotoğraf okunamadı','err');}
-};
+/* ---- product add/edit ---- */
+function setPhoto(d){const img=$('photoPreview'),clr=$('photoClear');if(d){img.src=d;img.hidden=false;clr.hidden=false;}else{img.src='';img.hidden=true;clr.hidden=true;}}
+function resetProduct(){editingId=null;pendingPhoto=null;$('pTitle').textContent='Yeni Ürün';$('fName').value='';$('fCode').value='';$('fLoc').value='';$('fQty').value='0';$('fNote').value='';setPhoto(null);}
+$('addBtn').onclick=()=>{resetProduct();openS('productSheet');};
+window.openEditProduct=function(id){const it=items.find(x=>x.id===id);if(!it)return;editingId=id;pendingPhoto=it.photo||null;$('pTitle').textContent='Ürünü Düzenle';$('fName').value=it.name;$('fCode').value=it.code;$('fLoc').value=it.loc;$('fQty').value=it.opening||0;$('fNote').value=it.note;setPhoto(it.photo||null);closeS('detailSheet');openS('productSheet');};
 $('qtyMinus').onclick=()=>{const q=$('fQty');q.value=Math.max(0,(parseInt(q.value,10)||0)-1);};
 $('qtyPlus').onclick=()=>{const q=$('fQty');q.value=(parseInt(q.value,10)||0)+1;};
+$('photoZone').onclick=e=>{if(e.target.closest('#photoClear'))return;$('photoInput').click();};
+$('photoClear').onclick=e=>{e.stopPropagation();pendingPhoto=null;setPhoto(null);$('photoInput').value='';};
+$('photoInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{toast('Fotoğraf işleniyor…');const d=await processImage(f);pendingPhoto=d;setPhoto(d);toast('Fotoğraf eklendi','ok');}catch(err){toast('Fotoğraf okunamadı','err');}};
+$('saveProduct').onclick=async()=>{
+  const name=$('fName').value.trim(),code=$('fCode').value.trim();
+  if(!name&&!code){toast('Ürün adı veya kod gerekli','err');return;}
+  let it;
+  if(editingId){it=items.find(x=>x.id===editingId);it.name=name;it.code=code;it.loc=$('fLoc').value.trim();it.opening=parseInt($('fQty').value,10)||0;it.note=$('fNote').value.trim();it.photo=pendingPhoto;}
+  else{it={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,code,loc:$('fLoc').value.trim(),opening:parseInt($('fQty').value,10)||0,note:$('fNote').value.trim(),photo:pendingPhoto,movements:[],date:Date.now()};items.push(it);}
+  await dbPut(it);closeS('productSheet');render();toast(editingId?'Güncellendi':'Ürün eklendi','ok');
+};
 
-/* ---------- Boot ---------- */
+/* ---- detail ---- */
+window.openDetail=function(id){detailId=id;renderDetail();openS('detailSheet');};
+function renderDetail(){
+  const it=items.find(x=>x.id===detailId);if(!it)return;
+  const c=computed(it);
+  $('dTitle').textContent=it.name||'(isimsiz)';
+  const moves=(it.movements||[]).slice().sort((a,b)=>b.date-a.date);
+  const ledger=moves.length?moves.map(m=>`
+    <div class="mv">
+      <div class="mv-badge ${m.type}">${m.type==='in'?'GİRİŞ':'ÇIKIŞ'}</div>
+      <div class="mv-body">
+        <div class="mv-who">${esc(m.type==='in'?m.company:m.person)||'—'}</div>
+        <div class="mv-sub">${fmtDay(m.date)}${m.type==='in'&&m.price?' · '+money(m.price)+' ₺/adet · '+money(m.price*m.qty)+' ₺':''}</div>
+      </div>
+      <div class="mv-qty ${m.type}">${m.type==='in'?'+':'−'}${m.qty}</div>
+      <button class="mv-del" onclick="delMove('${m.id}')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+    </div>`).join(''):`<div class="no-mv">Henüz hareket yok</div>`;
+  $('detailBody').innerHTML=`
+    <div class="detail-hero">
+      ${it.photo?`<img src="${it.photo}" alt="">`:`<div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`}
+      <div class="meta"><div class="code">${esc(it.code)||'kodsuz'}</div>${it.loc?`<div class="loc">📍 ${esc(it.loc)}</div>`:''}${it.note?`<div class="loc">${esc(it.note)}</div>`:''}</div>
+    </div>
+    <div class="stock-box">
+      <div class="num">${c.current}</div><div class="lbl">Mevcut Stok (adet)</div>
+      <div class="brk"><span class="op">Açılış ${it.opening||0}</span><span class="i">↑ Giriş ${c.totalIn}</span><span class="o">↓ Çıkış ${c.totalOut}</span></div>
+    </div>
+    <div class="move-btns">
+      <button class="mb-in" onclick="openMove('in')"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Giriş</button>
+      <button class="mb-out" onclick="openMove('out')"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Çıkış</button>
+    </div>
+    <p class="ledger-title">Hareket Geçmişi (${moves.length})</p>
+    ${ledger}
+    <div class="detail-foot">
+      <button onclick="openEditProduct('${it.id}')">Ürünü düzenle</button>
+      <button class="del" onclick="delProduct('${it.id}')">Ürünü sil</button>
+    </div>`;
+}
+window.delProduct=async function(id){const it=items.find(x=>x.id===id);if(!confirm(`"${it?it.name||'ürün':'ürün'}" ve tüm hareketleri silinsin mi?`))return;await dbDelete(id);items=items.filter(x=>x.id!==id);closeS('detailSheet');render();toast('Ürün silindi');};
+window.delMove=async function(mid){const it=items.find(x=>x.id===detailId);if(!it)return;if(!confirm('Bu hareket silinsin mi?'))return;it.movements=(it.movements||[]).filter(m=>m.id!==mid);await dbPut(it);renderDetail();render();toast('Hareket silindi');};
+
+/* ---- move (giriş/çıkış) ---- */
+window.openMove=function(type){
+  moveType=type;
+  $('mTitle').textContent=type==='in'?'Stok Girişi':'Stok Çıkışı';
+  $('mWhoLabel').textContent=type==='in'?'Firma adı':'Personel ad soyad';
+  $('mWho').value='';$('mQty').value='1';$('mPrice').value='';$('mDate').value=todayISO();
+  $('mPriceField').style.display=type==='in'?'':'none';
+  const btn=$('saveMove');btn.className='save '+type;btn.textContent=type==='in'?'Girişi kaydet':'Çıkışı kaydet';
+  openS('moveSheet');
+};
+$('mMinus').onclick=()=>{const q=$('mQty');q.value=Math.max(1,(parseInt(q.value,10)||1)-1);};
+$('mPlus').onclick=()=>{const q=$('mQty');q.value=(parseInt(q.value,10)||0)+1;};
+$('saveMove').onclick=async()=>{
+  const it=items.find(x=>x.id===detailId);if(!it)return;
+  const who=$('mWho').value.trim();
+  const qty=parseInt($('mQty').value,10)||0;
+  if(qty<=0){toast('Adet 1 veya daha fazla olmalı','err');return;}
+  const dateTs=isoToTs($('mDate').value||todayISO());
+  const mv={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:moveType,qty,date:dateTs};
+  if(moveType==='in'){mv.company=who;mv.price=parseFloat($('mPrice').value)||0;}
+  else{mv.person=who;const c=computed(it);if(qty>c.current&&!confirm(`Çıkış (${qty}) mevcut stoktan (${c.current}) fazla. Yine de kaydedilsin mi?`))return;}
+  it.movements=it.movements||[];it.movements.push(mv);
+  await dbPut(it);closeS('moveSheet');renderDetail();render();
+  toast(moveType==='in'?'Giriş eklendi':'Çıkış eklendi','ok');
+};
+
+/* ---- export ---- */
+$('exportBtn').onclick=async()=>{
+  if(items.length===0)return;
+  const btn=$('exportBtn');const orig=btn.innerHTML;btn.disabled=true;btn.innerHTML='<span class="spin">⏳</span>';
+  try{
+    if(typeof JSZip==='undefined'){toast('Excel motoru yüklenemedi.<br>İnternete bağlanıp tekrar dene.','err');return;}
+    const sorted=items.slice().sort((a,b)=>a.date-b.date);
+    const products=sorted.map((it,i)=>{const c=computed(it);return{no:i+1,name:it.name,code:it.code,loc:it.loc,opening:it.opening||0,totalIn:c.totalIn,totalOut:c.totalOut,current:c.current,note:it.note,date:fmtDate(it.date),photoB64:it.photo?it.photo.split(',')[1]:null};});
+    const ins=[],outs=[];
+    sorted.forEach(it=>{(it.movements||[]).slice().sort((a,b)=>a.date-b.date).forEach(m=>{if(m.type==='in')ins.push({name:it.name,code:it.code,company:m.company||'',qty:m.qty,price:m.price||0,total:Math.round((m.price||0)*m.qty*100)/100,date:fmtDay(m.date)});else outs.push({name:it.name,code:it.code,person:m.person||'',qty:m.qty,date:fmtDay(m.date)});});});
+    ins.forEach((m,i)=>m.no=i+1);outs.forEach((m,i)=>m.no=i+1);
+    const zip=buildStockWorkbook({products,ins,outs},JSZip);
+    const blob=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`stok_${todayISO()}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+    toast('Excel hazır ✓<br>Paylaş menüsünden gönderebilirsin','ok');
+  }catch(e){console.error(e);toast('Dışa aktarma hatası','err');}
+  finally{btn.disabled=false;btn.innerHTML=orig;}
+};
+
+searchEl.oninput=render;
+
+/* ---- boot + migration ---- */
 (async()=>{
   try{
     await openDB();
     items=await dbGetAll();
+    let migrated=false;
+    for(const it of items){
+      if(it.opening===undefined){it.opening=it.qty||0;delete it.qty;migrated=true;}
+      if(!Array.isArray(it.movements)){it.movements=[];migrated=true;}
+      if(migrated)await dbPut(it);
+      migrated=false;
+    }
     render();
-  }catch(e){
-    console.error(e);
-    listEl.innerHTML='<div class="empty"><h2>Depolama açılamadı</h2><p>Safari kullandığından ve gizli modda olmadığından emin ol.</p></div>';
-  }
+  }catch(e){console.error(e);listEl.innerHTML='<div class="empty"><h2>Depolama açılamadı</h2><p>Safari kullandığından ve gizli modda olmadığından emin ol.</p></div>';}
 })();
 </script>
 </body>
